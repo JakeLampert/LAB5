@@ -68,27 +68,44 @@ public class PokerHub extends Hub {
 				break;
 			case StartGame:
 				// Get the rule from the Action object.
-				Rule rle = new Rule(act.geteGame());
-				
-				//TODO Lab #5 - If neither player has 'the button', pick a random player
-				//		and assign the button.				
+				Rule rle = new Rule(act.geteGame());				
 
 				//TODO Lab #5 - Start the new instance of GamePlay
-								
+				HubGamePlay = new GamePlay(rle, actPlayer.getPlayerID());				
 				// Add Players to Game
-				
+				HubGamePlay.setGamePlayers(HubPokerTable.getHmPlayer());
 				// Set the order of players
-				
+				HubGamePlay.setiActOrder(HubGamePlay.GetOrder(actPlayer.getiPlayerPosition()));
 
 
 			case Draw:
+				HubGamePlay.seteDrawCountLast(eDrawCount.geteDrawCount(HubGamePlay.geteDrawCountLast().getDrawNo()+1));
+				CardDraw draw = HubGamePlay.getRule().GetDrawCard(HubGamePlay.geteDrawCountLast());
+				if(draw.getCardDestination() == eCardDestination.Player){
+					for(int x:HubGamePlay.getiActOrder()){
+						for(Player p:HubPokerTable.getHmPlayer().values()){
+							if(x == p.getiPlayerPosition()){
+								for(int i=0; i<draw.getCardCount().getCardCount(); i++){
+									HubGamePlay.drawCard(p, eCardDestination.Player);
+								}
+							}	
+						}
+					}
+				}
+				else{
+					for(int i=0; i<draw.getCardCount().getCardCount(); i++){
+						HubGamePlay.drawCard(new Player(), eCardDestination.Community);
+					}
+				}
 
 				//TODO Lab #5 -	Draw card(s) for each player in the game.
 				//TODO Lab #5 -	Make sure to set the correct visiblity
 				//TODO Lab #5 -	Make sure to account for community cards
 
 				//TODO Lab #5 -	Check to see if the game is over
+				if(HubGamePlay.geteDrawCountLast().getDrawNo() == HubGamePlay.getRule().GetMaxDrawCount()){
 				HubGamePlay.isGameOver();
+				}
 				
 				resetOutput();
 				//	Send the state of the gameplay back to the clients
@@ -101,9 +118,6 @@ public class PokerHub extends Hub {
 				sendToAll(HubGamePlay);
 				break;
 			}
-			
 		}
-
 	}
-
 }
